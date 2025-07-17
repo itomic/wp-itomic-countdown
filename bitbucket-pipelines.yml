@@ -34,26 +34,16 @@ pipelines:
         artifacts:
           - deploy/**
 
-  branches:
+    branches:
     main:
       - step:
           name: Deploy to Test Server
           script:
-            - apt-get update && apt-get install -y openssh-client
-            - eval $(ssh-agent -s)
-            - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-            - mkdir -p ~/.ssh
-            - chmod 700 ~/.ssh
-            - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
-            - chmod 644 ~/.ssh/known_hosts
+            - echo "Deployment disabled - SSH keys not configured"
+            - echo "To enable deployment, configure SSH keys in Repository Settings"
             - ./deploy.sh
-            - scp -i ~/.ssh/atlas_root_key deploy/itomic-countdown-*.zip root@atlas.itomic.com:/home/squashpl/public_html/wp-content/plugins/itomic-countdown/
-            - scp -i ~/.ssh/atlas_root_key deploy/version.json root@pegasus.itomic.com:/home/itomicau/public_html/plugins/itomic-countdown/
-            - scp -i ~/.ssh/atlas_root_key deploy/info.json root@pegasus.itomic.com:/home/itomicau/public_html/plugins/itomic-countdown/
-            - ssh -i ~/.ssh/atlas_root_key root@atlas.itomic.com "chown squashpl:squashpl /home/squashpl/public_html/wp-content/plugins/itomic-countdown/itomic-countdown-*.zip"
-            - ssh -i ~/.ssh/pegasus_root_key root@pegasus.itomic.com "chown itomicau:itomicau /home/itomicau/public_html/plugins/itomic-countdown/*"
-        artifacts:
-          - deploy/**
+          artifacts:
+            - deploy/**
 
 definitions:
   caches:
