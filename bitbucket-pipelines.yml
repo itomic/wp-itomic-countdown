@@ -39,9 +39,14 @@ pipelines:
       - step:
           name: Deploy to Test Server
           script:
-            - echo "Deployment disabled - SSH keys not configured"
-            - echo "To enable deployment, configure SSH keys in Repository Settings"
+            - apt-get update && apt-get install -y openssh-client
+            - chmod +x deploy.sh
             - ./deploy.sh
+            - scp deploy/itomic-countdown-*.zip root@atlas.itomic.com:/home/squashpl/public_html/wp-content/plugins/itomic-countdown/
+            - scp deploy/version.json root@pegasus.itomic.com:/home/itomicau/public_html/plugins/itomic-countdown/
+            - scp deploy/info.json root@pegasus.itomic.com:/home/itomicau/public_html/plugins/itomic-countdown/
+            - ssh root@atlas.itomic.com "chown squashpl:squashpl /home/squashpl/public_html/wp-content/plugins/itomic-countdown/itomic-countdown-*.zip"
+            - ssh root@pegasus.itomic.com "chown itomicau:itomicau /home/itomicau/public_html/plugins/itomic-countdown/*"
           artifacts:
             - deploy/**
 
