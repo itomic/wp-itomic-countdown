@@ -1,6 +1,6 @@
 {
     "name": "itomic/itomic-countdown",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "description": "Display a real-time countdown to any event on your WordPress site",
     "type": "wordpress-plugin",
     "license": "GPL-3.0-or-later",
@@ -27,7 +27,7 @@
         "phpcbf": "phpcbf --standard=WordPress itomic-countdown.php assets/",
         "build": "./deploy.sh",
         "deploy": "./deploy.sh && echo 'Deploy to servers manually'",
-        "version": "1.0.7",
+        "version": "1.0.8",
         "version:patch": "bin/version-patch.sh",
         "version:minor": "bin/version-minor.sh", 
         "version:major": "bin/version-major.sh",

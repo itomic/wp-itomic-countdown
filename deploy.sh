@@ -46,26 +46,43 @@ mkdir -p "$DEPLOY_DIR"
 
 # Create plugin package (exclude development files)
 print_status "Creating plugin package..."
-zip -r "$DEPLOY_DIR/$PLUGIN_NAME-$VERSION.zip" . \
-    -x "*.git*" \
-    -x "*.DS_Store*" \
-    -x "deploy/*" \
-    -x "deploy.sh" \
-    -x "README.md" \
-    -x "DEVELOPMENT.md" \
-    -x "INSTALLATION.md" \
-    -x "*.log" \
-    -x "vendor/*" \
-    -x "composer.json" \
-    -x "composer.lock" \
-    -x "phpunit.xml" \
-    -x "tests/*" \
-    -x "bin/*" \
-    -x ".gitignore" \
-    -x "coverage/*" \
-    -x "node_modules/*" \
-    -x "*.tmp" \
-    -x "*.temp"
+
+# Create temporary directory for proper plugin structure
+TEMP_DIR=$(mktemp -d)
+PLUGIN_DIR="$TEMP_DIR/$PLUGIN_NAME"
+
+# Copy plugin files to temporary directory with proper structure
+mkdir -p "$PLUGIN_DIR"
+rsync -av --exclude-from=<(cat <<EOF
+.git*
+.DS_Store*
+deploy/
+deploy.sh
+README.md
+DEVELOPMENT.md
+INSTALLATION.md
+*.log
+vendor/
+composer.json
+composer.lock
+phpunit.xml
+tests/
+bin/
+.gitignore
+coverage/
+node_modules/
+*.tmp
+*.temp
+EOF
+) . "$PLUGIN_DIR/"
+
+# Create ZIP with proper plugin folder structure
+cd "$TEMP_DIR"
+zip -r "$OLDPWD/$DEPLOY_DIR/$PLUGIN_NAME-$VERSION.zip" "$PLUGIN_NAME/"
+cd "$OLDPWD"
+
+# Clean up temporary directory
+rm -rf "$TEMP_DIR"
 
 if [ $? -eq 0 ]; then
     print_success "Plugin package created: $DEPLOY_DIR/$PLUGIN_NAME-$VERSION.zip"
