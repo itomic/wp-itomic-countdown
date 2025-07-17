@@ -3,7 +3,7 @@
  * Plugin Name: Itomic Countdown
  * Plugin URI: https://www.itomic.com.au/itomic-countdown/
  * Description: Display a real-time countdown to any event on your WordPress site.
- * Version: 1.0.9
+ * Version: 1.0.10
  * Author: Itomic
  * Author URI: https://www.itomic.com.au/
  * Developer: Itomic
@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'ITOMIC_COUNTDOWN_VERSION', '1.0.9' );
+define( 'ITOMIC_COUNTDOWN_VERSION', '1.0.10' );
 define( 'ITOMIC_COUNTDOWN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ITOMIC_COUNTDOWN_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITOMIC_COUNTDOWN_UPDATE_URL', 'https://itomic.com.au/plugins/itomic-countdown/' );
@@ -71,34 +71,35 @@ class Itomic_Countdown_Plugin {
 	 * @return bool True if WordPress.org version, false if self-hosted.
 	 */
 	private function is_wordpress_org_version() {
-		// WordPress.org plugins don't have custom update URLs.
-		// If the plugin is installed from WordPress.org, it won't have our custom update system.
-		// We can detect this by checking if the plugin was installed via WordPress.org's system.
+		// Simple, conservative approach: Only disable custom updates when we're absolutely certain
+		// this is a WordPress.org installation. Default to allowing custom updates.
 		
-		// Method 1: Check if plugin is in WordPress.org directory structure
-		$plugin_file = plugin_basename( __FILE__ );
-		$plugin_dir = dirname( WP_PLUGIN_DIR . '/' . $plugin_file );
+		// Check for WordPress.org specific environment indicators
+		// These constants are only set in WordPress.org hosted environments
+		if ( defined( 'WPORGPATH' ) || defined( 'WPORG_SANDBOXED' ) ) {
+			return true;
+		}
 		
-		// WordPress.org plugins typically don't have custom update constants
-		// or the update constant would be different
+		// Check if the update URL constant is missing (would indicate WordPress.org package)
 		if ( ! defined( 'ITOMIC_COUNTDOWN_UPDATE_URL' ) ) {
 			return true;
 		}
 		
-		// Method 2: Check if we can reach our custom update server
-		// If we can't reach our update server, assume it's WordPress.org version
-		$response = wp_remote_head( ITOMIC_COUNTDOWN_UPDATE_URL . 'version.json', array( 'timeout' => 5 ) );
-		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
-			return true;
+		// Check for WordPress.org plugin directory structure patterns
+		// WordPress.org plugins are typically installed without custom update URLs
+		$plugin_file = plugin_basename( __FILE__ );
+		if ( strpos( $plugin_file, 'itomic-countdown/itomic-countdown.php' ) !== false ) {
+			// If installed via WordPress.org, there would be no custom update server reference
+			// We can check if our update server URL looks like the default WordPress.org pattern
+			if ( strpos( ITOMIC_COUNTDOWN_UPDATE_URL, 'downloads.wordpress.org' ) !== false ||
+				 strpos( ITOMIC_COUNTDOWN_UPDATE_URL, 'api.wordpress.org' ) !== false ) {
+				return true;
+			}
 		}
 		
-		// Method 3: Check for WordPress.org specific indicators
-		// WordPress.org sets specific constants and structures
-		if ( defined( 'WPORGPATH' ) || ( function_exists( 'get_file_data' ) && strpos( __FILE__, '/wp-content/plugins/' ) === false ) ) {
-			return true;
-		}
-		
-		// If none of the above conditions are met, assume self-hosted
+		// Default: Allow custom updates (assume self-hosted)
+		// This is safer - if we're wrong, updates still work via WordPress.org
+		// If we're right, custom updates work as expected
 		return false;
 	}
 
