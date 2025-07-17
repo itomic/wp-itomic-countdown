@@ -244,7 +244,31 @@ When ready for WordPress.org:
 
 ## Resources
 
-- [WordPress Plugin Handbook](https://developer.wordpress.org/plugins/)
-- [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/)
-- [PHPUnit Testing](https://phpunit.de/)
-- [Bitbucket Pipelines](https://bitbucket.org/product/features/pipelines) 
+### Official WordPress Documentation
+- [WordPress Plugin Handbook](https://developer.wordpress.org/plugins/) - The authoritative guide for plugin development
+- [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/) - Official coding standards for PHP, JavaScript, CSS, and HTML
+- [WordPress Theme Handbook](https://developer.wordpress.org/themes/) - Complete guide for theme development
+- [WordPress Plugin API Reference](https://developer.wordpress.org/plugins/hooks/) - Hooks, actions, and filters documentation
+
+### Development Tools & Testing
+- [PHPUnit Testing](https://phpunit.de/) - PHP testing framework
+- [Bitbucket Pipelines](https://bitbucket.org/product/features/pipelines) - CI/CD automation
+- [WordPress Coding Standards (WPCS)](https://github.com/WordPress/WordPress-Coding-Standards) - PHP_CodeSniffer ruleset for WordPress
+- [WP-CLI](https://wp-cli.org/) - Command-line interface for WordPress
+
+### Performance & Security
+- [WordPress Performance Guide](https://developer.wordpress.org/advanced-administration/performance/optimization/) - Official performance optimization guide
+- [WordPress Security Best Practices](https://developer.wordpress.org/plugins/security/) - Security guidelines and best practices
+- [WordPress REST API Security](https://developer.wordpress.org/rest-api/extending-the-rest-api/authentication/) - API security documentation
+
+### Community Resources & Best Practices
+- [WP Engine Developer Best Practices](https://wpengine.com/resources/developer-best-practices/) - Professional development workflows
+- [Pantheon WordPress Developer Guide](https://docs.pantheon.io/guides/wordpress-developer/wordpress-best-practices) - Platform-specific best practices
+- [Advanced Custom Fields Developer Blog](https://www.advancedcustomfields.com/blog/) - Advanced WordPress development techniques
+- [WordPress Development Subreddit](https://www.reddit.com/r/Wordpress/) - Community discussions and problem-solving
+- [Make WordPress Core](https://make.wordpress.org/core/) - WordPress core development news and guidelines
+
+### Plugin Development Specific
+- [WordPress Plugin Review Guidelines](https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/) - Requirements for WordPress.org submission
+- [Plugin Security Handbook](https://developer.wordpress.org/plugins/security/) - Comprehensive security guide for plugins
+- [WordPress Plugin Boilerplate](https://github.com/DevinVinson/WordPress-Plugin-Boilerplate) - Professional plugin development template 

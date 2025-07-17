@@ -201,4 +201,8 @@ Developed by [Itomic](https://www.itomic.com.au)
 5. Ensure coding standards compliance
 6. Submit a pull request
 
-For detailed development information, see [DEVELOPMENT.md](DEVELOPMENT.md). 
+For detailed development information, see [DEVELOPMENT.md](DEVELOPMENT.md).
+
+### Additional Resources
+
+For comprehensive WordPress plugin development guidance, refer to the official [WordPress Plugin Developer Handbook](https://developer.wordpress.org/plugins/) and our expanded resources section in the [development documentation](DEVELOPMENT.md#resources). 
