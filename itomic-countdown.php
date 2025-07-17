@@ -3,7 +3,7 @@
  * Plugin Name: Itomic Countdown
  * Plugin URI: https://www.itomic.com.au/itomic-countdown/
  * Description: Display a real-time countdown to any event on your WordPress site.
- * Version: 1.0.8
+ * Version: 1.0.9
  * Author: Itomic
  * Author URI: https://www.itomic.com.au/
  * Developer: Itomic
@@ -15,7 +15,6 @@
  * Requires at least: 5.0
  * Tested up to: 6.8
  * Requires PHP: 7.4
- * Network: false
  *
  * @package Itomic_Countdown
  */
@@ -26,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'ITOMIC_COUNTDOWN_VERSION', '1.0.8' );
+define( 'ITOMIC_COUNTDOWN_VERSION', '1.0.9' );
 define( 'ITOMIC_COUNTDOWN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ITOMIC_COUNTDOWN_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITOMIC_COUNTDOWN_UPDATE_URL', 'https://itomic.com.au/plugins/itomic-countdown/' );
@@ -47,13 +46,16 @@ class Itomic_Countdown_Plugin {
 		add_action( 'wp_footer', array( $this, 'display_countdown' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_settings_link' ) );
 
-		// Add update checking.
-		add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_updates' ) );
-		add_filter( 'plugins_api', array( $this, 'plugin_info' ), 10, 3 );
+		// Only add custom update system for self-hosted installations (not WordPress.org).
+		if ( ! $this->is_wordpress_org_version() ) {
+			// Add update checking.
+			add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_updates' ) );
+			add_filter( 'plugins_api', array( $this, 'plugin_info' ), 10, 3 );
 
-		// Add auto-update functionality.
-		add_filter( 'auto_update_plugin', array( $this, 'auto_update_plugin' ), 10, 2 );
-		add_filter( 'plugin_auto_update_setting_html', array( $this, 'auto_update_setting_html' ), 10, 2 );
+			// Add auto-update functionality.
+			add_filter( 'auto_update_plugin', array( $this, 'auto_update_plugin' ), 10, 2 );
+			add_filter( 'plugin_auto_update_setting_html', array( $this, 'auto_update_setting_html' ), 10, 2 );
+		}
 	}
 
 	/**
@@ -61,6 +63,43 @@ class Itomic_Countdown_Plugin {
 	 */
 	public function init() {
 		load_plugin_textdomain( 'itomic-countdown', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	}
+
+	/**
+	 * Check if this is a WordPress.org hosted plugin
+	 *
+	 * @return bool True if WordPress.org version, false if self-hosted.
+	 */
+	private function is_wordpress_org_version() {
+		// WordPress.org plugins don't have custom update URLs.
+		// If the plugin is installed from WordPress.org, it won't have our custom update system.
+		// We can detect this by checking if the plugin was installed via WordPress.org's system.
+		
+		// Method 1: Check if plugin is in WordPress.org directory structure
+		$plugin_file = plugin_basename( __FILE__ );
+		$plugin_dir = dirname( WP_PLUGIN_DIR . '/' . $plugin_file );
+		
+		// WordPress.org plugins typically don't have custom update constants
+		// or the update constant would be different
+		if ( ! defined( 'ITOMIC_COUNTDOWN_UPDATE_URL' ) ) {
+			return true;
+		}
+		
+		// Method 2: Check if we can reach our custom update server
+		// If we can't reach our update server, assume it's WordPress.org version
+		$response = wp_remote_head( ITOMIC_COUNTDOWN_UPDATE_URL . 'version.json', array( 'timeout' => 5 ) );
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+			return true;
+		}
+		
+		// Method 3: Check for WordPress.org specific indicators
+		// WordPress.org sets specific constants and structures
+		if ( defined( 'WPORGPATH' ) || ( function_exists( 'get_file_data' ) && strpos( __FILE__, '/wp-content/plugins/' ) === false ) ) {
+			return true;
+		}
+		
+		// If none of the above conditions are met, assume self-hosted
+		return false;
 	}
 
 	/**
@@ -340,15 +379,6 @@ class Itomic_Countdown_Plugin {
 		// Pass data to JavaScript.
 		$options = get_option( 'itomic_countdown_settings' );
 
-		// Debug output for admins.
-		if ( current_user_can( 'manage_options' ) ) {
-			echo '<!-- Itomic Countdown JS Debug: ';
-			echo 'Event date: ' . ( isset( $options['event_date'] ) ? esc_html( $options['event_date'] ) : 'NOT SET' ) . ' | ';
-			echo 'Timezone: ' . ( isset( $options['timezone'] ) ? esc_html( $options['timezone'] ) : 'NOT SET' ) . ' | ';
-			echo 'Position: ' . ( isset( $options['display_position'] ) ? esc_html( $options['display_position'] ) : 'NOT SET' );
-			echo ' -->';
-		}
-
 		wp_localize_script(
 			'itomic-countdown',
 			'itomicCountdownData',
@@ -366,20 +396,7 @@ class Itomic_Countdown_Plugin {
 	public function display_countdown() {
 		$options = get_option( 'itomic_countdown_settings' );
 
-		// Debug output (remove this after fixing).
-		if ( current_user_can( 'manage_options' ) ) {
-			echo '<!-- Itomic Countdown Debug: ';
-			echo 'Event date: ' . ( isset( $options['event_date'] ) ? esc_html( $options['event_date'] ) : 'NOT SET' ) . ' | ';
-			echo 'Event title: ' . ( isset( $options['event_title'] ) ? esc_html( $options['event_title'] ) : 'NOT SET' ) . ' | ';
-			echo 'Position: ' . ( isset( $options['display_position'] ) ? esc_html( $options['display_position'] ) : 'NOT SET' ) . ' | ';
-			echo 'Timezone: ' . ( isset( $options['timezone'] ) ? esc_html( $options['timezone'] ) : 'NOT SET' );
-			echo ' -->';
-		}
-
 		if ( empty( $options['event_date'] ) ) {
-			if ( current_user_can( 'manage_options' ) ) {
-				echo '<!-- Itomic Countdown: No event date set -->';
-			}
 			return;
 		}
 
@@ -407,9 +424,6 @@ class Itomic_Countdown_Plugin {
 	 * @return object Modified transient with update information.
 	 */
 	public function check_for_updates( $transient ) {
-		// Simple test to see if this function is called.
-		file_put_contents( WP_CONTENT_DIR . '/update-test.txt', gmdate( 'Y-m-d H:i:s' ) . ' - Update check called' . PHP_EOL, FILE_APPEND );
-
 		if ( empty( $transient->checked ) ) {
 			return $transient;
 		}
@@ -417,18 +431,10 @@ class Itomic_Countdown_Plugin {
 		// Get plugin info.
 		$plugin_slug = basename( dirname( __FILE__ ) ) . '/' . basename( __FILE__ );
 
-		// Debug output for admins.
-		if ( current_user_can( 'manage_options' ) ) {
-			error_log( 'Itomic Countdown: Checking for updates from ' . ITOMIC_COUNTDOWN_UPDATE_URL );
-		}
-
 		// Check for updates from our server.
 		$response = wp_remote_get( ITOMIC_COUNTDOWN_UPDATE_URL . 'version.json' );
 
 		if ( is_wp_error( $response ) ) {
-			if ( current_user_can( 'manage_options' ) ) {
-				error_log( 'Itomic Countdown: Update check failed - ' . $response->get_error_message() );
-			}
 			return $transient;
 		}
 
@@ -436,15 +442,7 @@ class Itomic_Countdown_Plugin {
 		$data = json_decode( $body, true );
 
 		if ( ! $data || ! isset( $data['version'] ) ) {
-			if ( current_user_can( 'manage_options' ) ) {
-				error_log( 'Itomic Countdown: Invalid version data received' );
-			}
 			return $transient;
-		}
-
-		// Debug output for admins.
-		if ( current_user_can( 'manage_options' ) ) {
-			error_log( 'Itomic Countdown: Current version ' . ITOMIC_COUNTDOWN_VERSION . ', Available version ' . $data['version'] );
 		}
 
 		// Compare versions.
