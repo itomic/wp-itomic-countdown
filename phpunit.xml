@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    bootstrap="tests/bootstrap.php"
+    backupGlobals="false"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    processIsolation="false"
+    stopOnFailure="false"
+    syntaxCheck="false"
+>
+    <testsuites>
+        <testsuite name="Itomic Countdown Plugin Test Suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    
+    <filter>
+        <whitelist>
+            <directory suffix=".php">.</directory>
+            <exclude>
+                <directory>tests</directory>
+                <directory>vendor</directory>
+                <directory>deploy</directory>
+                <file>composer.json</file>
+                <file>composer.lock</file>
+                <file>phpunit.xml</file>
+                <file>bitbucket-pipelines.yml</file>
+                <file>.gitignore</file>
+                <file>deploy.sh</file>
+            </exclude>
+        </whitelist>
+    </filter>
+    
+    <logging>
+        <log type="coverage-html" target="coverage"/>
+        <log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
+    </logging>
+</phpunit> 

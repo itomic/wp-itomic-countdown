@@ -1,0 +1,60 @@
+image: php:8.1
+
+pipelines:
+  default:
+    - step:
+        name: PHP Syntax Check
+        caches:
+          - composer
+        script:
+          - apt-get update && apt-get install -y git zip unzip
+          - php -l itomic-countdown.php
+          - php -l uninstall.php
+          - find assets -name "*.php" -exec php -l {} \;
+        artifacts:
+          - deploy/**
+    - step:
+        name: WordPress Coding Standards
+        caches:
+          - composer
+        script:
+          - apt-get update && apt-get install -y git zip unzip
+          - composer global require squizlabs/php_codesniffer
+          - composer global require wp-coding-standards/wpcs
+          - ~/.composer/vendor/bin/phpcs --standard=WordPress itomic-countdown.php
+          - ~/.composer/vendor/bin/phpcs --standard=WordPress assets/
+        artifacts:
+          - deploy/**
+    - step:
+        name: Build Plugin Package
+        script:
+          - apt-get update && apt-get install -y git zip unzip
+          - chmod +x deploy.sh
+          - ./deploy.sh
+        artifacts:
+          - deploy/**
+
+  branches:
+    main:
+      - step:
+          name: Deploy to Test Server
+          script:
+            - apt-get update && apt-get install -y openssh-client
+            - eval $(ssh-agent -s)
+            - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+            - mkdir -p ~/.ssh
+            - chmod 700 ~/.ssh
+            - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+            - chmod 644 ~/.ssh/known_hosts
+            - ./deploy.sh
+            - scp -i ~/.ssh/atlas_root_key deploy/itomic-countdown-*.zip root@atlas.itomic.com:/home/squashpl/public_html/wp-content/plugins/itomic-countdown/
+            - scp -i ~/.ssh/atlas_root_key deploy/version.json root@pegasus.itomic.com:/home/itomicau/public_html/plugins/itomic-countdown/
+            - scp -i ~/.ssh/atlas_root_key deploy/info.json root@pegasus.itomic.com:/home/itomicau/public_html/plugins/itomic-countdown/
+            - ssh -i ~/.ssh/atlas_root_key root@atlas.itomic.com "chown squashpl:squashpl /home/squashpl/public_html/wp-content/plugins/itomic-countdown/itomic-countdown-*.zip"
+            - ssh -i ~/.ssh/pegasus_root_key root@pegasus.itomic.com "chown itomicau:itomicau /home/itomicau/public_html/plugins/itomic-countdown/*"
+        artifacts:
+          - deploy/**
+
+definitions:
+  caches:
+    composer: ~/.composer/cache 

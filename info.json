@@ -1,0 +1,20 @@
+{
+    "name": "Itomic Countdown",
+    "slug": "itomic-countdown",
+    "version": "1.0.2",
+    "author": "Itomic",
+    "author_profile": "https://www.itomic.com.au/",
+    "requires": "5.0",
+    "requires_php": "7.4",
+    "tested": "6.8",
+    "last_updated": "2024-01-15",
+    "sections": {
+        "description": "Display a beautiful real-time countdown to any event on your WordPress site with easy configuration and multiple display positions.",
+        "changelog": "= 1.0.2 =\\n* Added auto-update functionality\\n* Added enable/disable auto-updates option\\n* Improved plugin update system\\n* Enhanced user experience\\n* Fixed security vulnerabilities (XSS prevention)\\n* Added proper input sanitization\\n\\n= 1.0.1 =\\n* Added automatic timezone detection\\n* Fixed CSS and JavaScript class name consistency\\n* Added debugging functionality\\n* Improved error handling\\n\\n= 1.0.0 =\\n* Initial release\\n* Real-time countdown functionality\\n* 9 display position options\\n* Timezone support\\n* Responsive design\\n* Admin settings interface",
+        "installation": "1. Upload the plugin files to /wp-content/plugins/itomic-countdown/\\n2. Activate the plugin through the 'Plugins' menu in WordPress\\n3. Go to Settings > Itomic Countdown to configure your countdown\\n4. Enter your event details and save"
+    },
+    "banners": {
+        "high": "https://www.itomic.com.au/wp-content/uploads/plugins/itomic-countdown/banner-772x250.jpg",
+        "low": "https://www.itomic.com.au/wp-content/uploads/plugins/itomic-countdown/banner-1544x500.jpg"
+    }
+} 
