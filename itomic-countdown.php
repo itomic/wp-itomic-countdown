@@ -3,7 +3,7 @@
  * Plugin Name: Itomic Countdown
  * Plugin URI: https://www.itomic.com.au/itomic-countdown/
  * Description: Display a real-time countdown to any event on your WordPress site.
- * Version: 1.0.4
+ * Version: 1.0.5
  * Author: Itomic
  * Author URI: https://www.itomic.com.au/
  * Developer: Itomic
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants
-define( 'ITOMIC_COUNTDOWN_VERSION', '1.0.4' );
+define( 'ITOMIC_COUNTDOWN_VERSION', '1.0.5' );
 define( 'ITOMIC_COUNTDOWN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ITOMIC_COUNTDOWN_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITOMIC_COUNTDOWN_UPDATE_URL', 'https://itomic.com.au/plugins/itomic-countdown/' );
@@ -473,7 +473,33 @@ class Itomic_Countdown_Plugin {
         }
         return $update;
     }
+
+    /**
+     * Plugin activation hook
+     */
+    public static function activate() {
+        // Set default options if they don't exist
+        if ( ! get_option( 'itomic_countdown_settings' ) ) {
+            add_option( 'itomic_countdown_settings', array() );
+        }
+        
+        // Set activation flag to track successful activation
+        update_option( 'itomic_countdown_activated', true );
+    }
+
+    /**
+     * Plugin deactivation hook
+     */
+    public static function deactivate() {
+        // Clean up transients but keep settings
+        delete_transient( 'itomic_countdown_cache' );
+        delete_option( 'itomic_countdown_activated' );
+    }
 }
+
+// Register activation and deactivation hooks
+register_activation_hook( __FILE__, array( 'Itomic_Countdown_Plugin', 'activate' ) );
+register_deactivation_hook( __FILE__, array( 'Itomic_Countdown_Plugin', 'deactivate' ) );
 
 // Initialize the plugin
 new Itomic_Countdown_Plugin(); 
