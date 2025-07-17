@@ -39,10 +39,19 @@ pipelines:
       - step:
           name: Deploy to Update Server
           script:
-            - apt-get update && apt-get install -y openssh-client
+            - apt-get update && apt-get install -y openssh-client zip unzip
             - chmod +x deploy.sh
+            - echo "Running deploy script..."
             - ./deploy.sh
-            - ls -la deploy/
+            - echo "Deploy script completed with exit code $?"
+            - echo "Checking if deploy directory exists..."
+            - ls -la
+            - echo "Contents of deploy directory..."
+            - ls -la deploy/ || echo "Deploy directory not found"
+            - echo "Looking for ZIP files..."
+            - find . -name "*.zip" -type f || echo "No ZIP files found"
+            - echo "Checking if ZIP files exist before SCP..."
+            - if [ -f deploy/itomic-countdown-*.zip ]; then echo "ZIP files found"; else echo "No ZIP files found, cannot continue"; exit 1; fi
             - ls -la deploy/*.zip
             - cat deploy/version.json
             - scp -o StrictHostKeyChecking=no deploy/itomic-countdown-*.zip root@pegasus.itomic.com:/home/itomicau/public_html/plugins/itomic-countdown/

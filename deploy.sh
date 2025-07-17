@@ -13,14 +13,25 @@ echo "Building Itomic Countdown Plugin v$VERSION..."
 # Create deployment directory
 mkdir -p $DEPLOY_DIR
 
-# Create plugin package
+# Create plugin package (exclude development files)
 zip -r "$DEPLOY_DIR/$PLUGIN_NAME-$VERSION.zip" . \
     -x "*.git*" \
     -x "*.DS_Store*" \
     -x "deploy/*" \
     -x "deploy.sh" \
     -x "README.md" \
-    -x "*.log"
+    -x "DEVELOPMENT.md" \
+    -x "INSTALLATION.md" \
+    -x "*.log" \
+    -x "vendor/*" \
+    -x "composer.json" \
+    -x "composer.lock" \
+    -x "phpunit.xml" \
+    -x "tests/*" \
+    -x "bin/*" \
+    -x ".gitignore"
+
+echo "Plugin package created: $DEPLOY_DIR/$PLUGIN_NAME-$VERSION.zip"
 
 # Create update files
 echo "Creating update files..."
