@@ -12,6 +12,10 @@
  * Domain Path: /languages
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
+ * Requires at least: 5.0
+ * Tested up to: 6.8
+ * Requires PHP: 7.4
+ * Network: false
  */
 
 // Prevent direct access
@@ -62,7 +66,9 @@ class Itomic_Countdown_Plugin {
      */
     public function add_admin_menu() {
         add_options_page(
+            /* translators: Page title for the admin settings page */
             __( 'Itomic Countdown Settings', 'itomic-countdown' ),
+            /* translators: Menu title in WordPress admin */
             __( 'Itomic Countdown', 'itomic-countdown' ),
             'manage_options',
             'itomic-countdown',
@@ -80,6 +86,7 @@ class Itomic_Countdown_Plugin {
         
         add_settings_section(
             'itomic_countdown_main',
+            /* translators: Settings section title for countdown configuration */
             __( 'Countdown Settings', 'itomic-countdown' ),
             array( $this, 'settings_section_callback' ),
             'itomic-countdown'
@@ -87,6 +94,7 @@ class Itomic_Countdown_Plugin {
         
         add_settings_field(
             'event_title',
+            /* translators: Label for the event title input field */
             __( 'Event Title', 'itomic-countdown' ),
             array( $this, 'event_title_callback' ),
             'itomic-countdown',
@@ -95,6 +103,7 @@ class Itomic_Countdown_Plugin {
         
         add_settings_field(
             'event_date',
+            /* translators: Label for the event date and time input field */
             __( 'Event Date & Time', 'itomic-countdown' ),
             array( $this, 'event_date_callback' ),
             'itomic-countdown',
@@ -103,6 +112,7 @@ class Itomic_Countdown_Plugin {
         
         add_settings_field(
             'timezone',
+            /* translators: Label for the timezone selection field */
             __( 'Timezone', 'itomic-countdown' ),
             array( $this, 'timezone_callback' ),
             'itomic-countdown',
@@ -111,6 +121,7 @@ class Itomic_Countdown_Plugin {
         
         add_settings_field(
             'display_position',
+            /* translators: Label for the display position selection field */
             __( 'Display Position', 'itomic-countdown' ),
             array( $this, 'display_position_callback' ),
             'itomic-countdown',
@@ -120,6 +131,9 @@ class Itomic_Countdown_Plugin {
     
     /**
      * Sanitize settings
+     *
+     * @param array $input The input array to sanitize.
+     * @return array Sanitized settings array.
      */
     public function sanitize_settings( $input ) {
         $sanitized = array();
@@ -149,7 +163,7 @@ class Itomic_Countdown_Plugin {
      * Settings section callback
      */
     public function settings_section_callback() {
-        echo '<p>' . __( 'Configure your countdown display settings below.', 'itomic-countdown' ) . '</p>';
+        echo '<p>' . esc_html__( 'Configure your countdown display settings below.', 'itomic-countdown' ) . '</p>';
     }
     
     /**
@@ -159,6 +173,7 @@ class Itomic_Countdown_Plugin {
         $options = get_option( 'itomic_countdown_settings' );
         $value = isset( $options['event_title'] ) ? $options['event_title'] : '';
         echo '<input type="text" id="event_title" name="itomic_countdown_settings[event_title]" value="' . esc_attr( $value ) . '" class="regular-text" />';
+        /* translators: Help text for the event title field */
         echo '<p class="description">' . esc_html__( 'Enter the title of your event (e.g., "New Year 2025")', 'itomic-countdown' ) . '</p>';
     }
     
@@ -169,12 +184,15 @@ class Itomic_Countdown_Plugin {
         $options = get_option( 'itomic_countdown_settings' );
         $value = isset( $options['event_date'] ) ? $options['event_date'] : '';
         echo '<input type="datetime-local" id="event_date" name="itomic_countdown_settings[event_date]" value="' . esc_attr( $value ) . '" />';
+        /* translators: Help text for the event date and time field */
         echo '<p class="description">' . esc_html__( 'Select the date and time of your event', 'itomic-countdown' ) . '</p>';
     }
     
     /**
      * Get default timezone for the user/server
      * Attempts to detect the most appropriate timezone
+     *
+     * @return string The detected timezone or UTC as fallback.
      */
     private function get_default_timezone() {
         // First, try to get the server's timezone
@@ -233,6 +251,7 @@ class Itomic_Countdown_Plugin {
             echo '<option value="' . esc_attr( $timezone ) . '" ' . esc_attr( $selected ) . '>' . esc_html( $timezone ) . '</option>';
         }
         echo '</select>';
+        /* translators: Help text for the timezone field */
         echo '<p class="description">' . esc_html__( 'Select the timezone for your event. Default is automatically detected from your server/WordPress settings.', 'itomic-countdown' ) . '</p>';
     }
     
@@ -244,14 +263,23 @@ class Itomic_Countdown_Plugin {
         $value = isset( $options['display_position'] ) ? $options['display_position'] : 'top-right';
         
         $positions = array(
+            /* translators: Display position option for countdown - top left corner */
             'top-left' => __( 'Top Left', 'itomic-countdown' ),
+            /* translators: Display position option for countdown - top center */
             'top-middle' => __( 'Top Middle', 'itomic-countdown' ),
+            /* translators: Display position option for countdown - top right corner */
             'top-right' => __( 'Top Right', 'itomic-countdown' ),
+            /* translators: Display position option for countdown - middle left side */
             'middle-left' => __( 'Middle Left', 'itomic-countdown' ),
+            /* translators: Display position option for countdown - center of screen */
             'middle-middle' => __( 'Middle Middle', 'itomic-countdown' ),
+            /* translators: Display position option for countdown - middle right side */
             'middle-right' => __( 'Middle Right', 'itomic-countdown' ),
+            /* translators: Display position option for countdown - bottom left corner */
             'bottom-left' => __( 'Bottom Left', 'itomic-countdown' ),
+            /* translators: Display position option for countdown - bottom center */
             'bottom-middle' => __( 'Bottom Middle', 'itomic-countdown' ),
+            /* translators: Display position option for countdown - bottom right corner */
             'bottom-right' => __( 'Bottom Right', 'itomic-countdown' )
         );
         
@@ -261,6 +289,7 @@ class Itomic_Countdown_Plugin {
             echo '<option value="' . esc_attr( $key ) . '" ' . esc_attr( $selected ) . '>' . esc_html( $label ) . '</option>';
         }
         echo '</select>';
+        /* translators: Help text for the display position field */
         echo '<p class="description">' . esc_html__( 'Choose where to display the countdown on your site', 'itomic-countdown' ) . '</p>';
     }
     
@@ -284,9 +313,13 @@ class Itomic_Countdown_Plugin {
     
     /**
      * Add settings link to plugins page
+     *
+     * @param array $links Existing plugin action links.
+     * @return array Modified plugin action links.
      */
     public function add_settings_link( $links ) {
-        $settings_link = '<a href="' . admin_url( 'options-general.php?page=itomic-countdown' ) . '">' . __( 'Settings', 'itomic-countdown' ) . '</a>';
+        /* translators: Link text for plugin settings page */
+        $settings_link = '<a href="' . esc_url( admin_url( 'options-general.php?page=itomic-countdown' ) ) . '">' . __( 'Settings', 'itomic-countdown' ) . '</a>';
         array_unshift( $links, $settings_link );
         return $links;
     }
@@ -304,9 +337,9 @@ class Itomic_Countdown_Plugin {
         // Debug output for admins
         if ( current_user_can( 'manage_options' ) ) {
             echo '<!-- Itomic Countdown JS Debug: ';
-            echo 'Event date: ' . ( isset( $options['event_date'] ) ? $options['event_date'] : 'NOT SET' ) . ' | ';
-            echo 'Timezone: ' . ( isset( $options['timezone'] ) ? $options['timezone'] : 'NOT SET' ) . ' | ';
-            echo 'Position: ' . ( isset( $options['display_position'] ) ? $options['display_position'] : 'NOT SET' );
+            echo 'Event date: ' . ( isset( $options['event_date'] ) ? esc_html( $options['event_date'] ) : 'NOT SET' ) . ' | ';
+            echo 'Timezone: ' . ( isset( $options['timezone'] ) ? esc_html( $options['timezone'] ) : 'NOT SET' ) . ' | ';
+            echo 'Position: ' . ( isset( $options['display_position'] ) ? esc_html( $options['display_position'] ) : 'NOT SET' );
             echo ' -->';
         }
         
@@ -340,6 +373,7 @@ class Itomic_Countdown_Plugin {
             return;
         }
         
+        /* translators: Default event title when none is specified */
         $event_title = isset( $options['event_title'] ) ? $options['event_title'] : __( 'Event', 'itomic-countdown' );
         $position = isset( $options['display_position'] ) ? $options['display_position'] : 'top-right';
         
@@ -358,6 +392,9 @@ class Itomic_Countdown_Plugin {
     
     /**
      * Check for plugin updates
+     *
+     * @param object $transient The update transient.
+     * @return object Modified transient with update information.
      */
     public function check_for_updates( $transient ) {
         // Simple test to see if this function is called
@@ -402,13 +439,11 @@ class Itomic_Countdown_Plugin {
         
         // Compare versions
         if ( version_compare( ITOMIC_COUNTDOWN_VERSION, $data['version'], '<' ) ) {
-            if ( current_user_can( 'manage_options' ) ) {
-                error_log( 'Itomic Countdown: Update available - adding to transient' );
-            }
             $transient->response[ $plugin_slug ] = (object) array(
                 'slug' => basename( dirname( __FILE__ ) ),
+                'plugin' => $plugin_slug,
                 'new_version' => $data['version'],
-                'url' => ITOMIC_COUNTDOWN_UPDATE_URL . 'info.json',
+                'url' => $data['details_url'],
                 'package' => ITOMIC_COUNTDOWN_UPDATE_URL . 'itomic-countdown-' . $data['version'] . '.zip'
             );
         }
@@ -417,18 +452,22 @@ class Itomic_Countdown_Plugin {
     }
     
     /**
-     * Plugin information for update screen
+     * Plugin info for update screen
+     *
+     * @param false|object|array $result The result from the API.
+     * @param string             $action The API action being performed.
+     * @param object             $args   Plugin API arguments.
+     * @return false|object|array Modified result with plugin information.
      */
     public function plugin_info( $result, $action, $args ) {
         if ( $action !== 'plugin_information' ) {
             return $result;
         }
         
-        if ( ! isset( $args->slug ) || $args->slug !== basename( dirname( __FILE__ ) ) ) {
+        if ( $args->slug !== basename( dirname( __FILE__ ) ) ) {
             return $result;
         }
         
-        // Get plugin info from our server
         $response = wp_remote_get( ITOMIC_COUNTDOWN_UPDATE_URL . 'info.json' );
         
         if ( is_wp_error( $response ) ) {
@@ -438,15 +477,19 @@ class Itomic_Countdown_Plugin {
         $body = wp_remote_retrieve_body( $response );
         $data = json_decode( $body, true );
         
-        if ( ! $data ) {
-            return $result;
+        if ( $data ) {
+            return (object) $data;
         }
         
-        return (object) $data;
+        return $result;
     }
-
+    
     /**
-     * Auto-update plugin setting HTML
+     * Auto-update setting HTML
+     *
+     * @param string $html        The HTML for the auto-update setting.
+     * @param string $plugin_file The plugin file path.
+     * @return string Modified HTML.
      */
     public function auto_update_setting_html( $html, $plugin_file ) {
         if ( $plugin_file !== plugin_basename( __FILE__ ) ) {
@@ -454,15 +497,21 @@ class Itomic_Countdown_Plugin {
         }
 
         $checked = get_option( 'auto_update_plugin_' . $plugin_file, 'off' );
+        /* translators: Description for automatic plugin updates */
         $html = '<p>' . __( 'Automatically update this plugin to the latest version.', 'itomic-countdown' ) . '</p>';
         $html .= '<label for="auto_update_plugin_' . esc_attr( $plugin_file ) . '">';
         $html .= '<input type="checkbox" id="auto_update_plugin_' . esc_attr( $plugin_file ) . '" name="auto_update_plugin_' . esc_attr( $plugin_file ) . '" value="on" ' . checked( $checked, 'on', false ) . ' />';
-        $html .= __( 'Enable automatic updates', 'itomic-countdown' ) . '</label>';
+        /* translators: Checkbox label to enable automatic plugin updates */
+        $html .= esc_html__( 'Enable automatic updates', 'itomic-countdown' ) . '</label>';
         return $html;
     }
 
     /**
      * Auto-update plugin filter
+     *
+     * @param bool   $update Whether to update the plugin.
+     * @param object $item   Plugin update data.
+     * @return bool Whether to auto-update the plugin.
      */
     public function auto_update_plugin( $update, $item ) {
         if ( $item->slug === basename( dirname( __FILE__ ) ) ) {

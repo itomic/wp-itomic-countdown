@@ -4,7 +4,7 @@ Tags: countdown, timer, event, display, widget
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.5
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -84,6 +84,14 @@ No, the plugin is lightweight and optimized for performance. It only loads the n
 3. Mobile responsive display
 
 == Changelog ==
+
+= 1.0.5 =
+* Fixed WordPress Plugin Check issues
+* Added comprehensive translator comments for all strings
+* Improved security with proper output escaping
+* Enhanced plugin headers with all required fields
+* Fixed plugin activation/deactivation during updates
+* Improved PHPDoc documentation for all functions
 
 = 1.0.2 =
 * Added auto-update functionality
