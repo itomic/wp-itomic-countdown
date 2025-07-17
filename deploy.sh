@@ -3,7 +3,8 @@
 # Itomic Countdown Plugin Deployment Script
 # This script packages the plugin for deployment
 
-VERSION="1.0.3"
+# Read version from plugin file
+VERSION=$(grep "Version:" itomic-countdown.php | head -1 | sed 's/.*Version: *//')
 PLUGIN_NAME="itomic-countdown"
 DEPLOY_DIR="deploy"
 
