@@ -37,15 +37,14 @@ pipelines:
   branches:
     main:
       - step:
-          name: Deploy to Test Server
+          name: Deploy to Update Server
           script:
             - apt-get update && apt-get install -y openssh-client
             - chmod +x deploy.sh
             - ./deploy.sh
-            - scp -o StrictHostKeyChecking=no deploy/itomic-countdown-*.zip root@atlas.itomic.com:/home/squashpl/public_html/wp-content/plugins/itomic-countdown/
+            - scp -o StrictHostKeyChecking=no deploy/itomic-countdown-*.zip root@pegasus.itomic.com:/home/itomicau/public_html/plugins/itomic-countdown/
             - scp -o StrictHostKeyChecking=no deploy/version.json root@pegasus.itomic.com:/home/itomicau/public_html/plugins/itomic-countdown/
             - scp -o StrictHostKeyChecking=no deploy/info.json root@pegasus.itomic.com:/home/itomicau/public_html/plugins/itomic-countdown/
-            - ssh -o StrictHostKeyChecking=no root@atlas.itomic.com "chown squashpl:squashpl /home/squashpl/public_html/wp-content/plugins/itomic-countdown/itomic-countdown-*.zip"
             - ssh -o StrictHostKeyChecking=no root@pegasus.itomic.com "chown itomicau:itomicau /home/itomicau/public_html/plugins/itomic-countdown/*"
           artifacts:
             - deploy/**
