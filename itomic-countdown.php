@@ -3,7 +3,7 @@
  * Plugin Name: Itomic Countdown
  * Plugin URI: https://www.itomic.com.au/itomic-countdown/
  * Description: Display a real-time countdown to any event on your WordPress site.
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Itomic
  * Author URI: https://www.itomic.com.au/
  * Developer: Itomic
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants
-define( 'ITOMIC_COUNTDOWN_VERSION', '1.0.5' );
+define( 'ITOMIC_COUNTDOWN_VERSION', '1.0.6' );
 define( 'ITOMIC_COUNTDOWN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ITOMIC_COUNTDOWN_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ITOMIC_COUNTDOWN_UPDATE_URL', 'https://itomic.com.au/plugins/itomic-countdown/' );

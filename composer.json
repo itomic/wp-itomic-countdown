@@ -1,6 +1,6 @@
 {
     "name": "itomic/itomic-countdown",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "Display a real-time countdown to any event on your WordPress site",
     "type": "wordpress-plugin",
     "license": "GPL-3.0-or-later",
@@ -27,10 +27,10 @@
         "phpcbf": "phpcbf --standard=WordPress itomic-countdown.php assets/",
         "build": "./deploy.sh",
         "deploy": "./deploy.sh && echo 'Deploy to servers manually'",
-        "version": "bin/bump-version.sh",
-        "version:patch": "bin/bump-version.sh $(php -r \"$v=json_decode(file_get_contents('composer.json'))->version; $p=explode('.', $v); $p[2]++; echo implode('.', $p);\") --commit",
-        "version:minor": "bin/bump-version.sh $(php -r \"$v=json_decode(file_get_contents('composer.json'))->version; $p=explode('.', $v); $p[1]++; $p[2]=0; echo implode('.', $p);\") --commit",
-        "version:major": "bin/bump-version.sh $(php -r \"$v=json_decode(file_get_contents('composer.json'))->version; $p=explode('.', $v); $p[0]++; $p[1]=0; $p[2]=0; echo implode('.', $p);\") --commit",
+        "version": "1.0.6",
+        "version:patch": "bin/version-patch.sh",
+        "version:minor": "bin/version-minor.sh", 
+        "version:major": "bin/version-major.sh",
         "release": [
             "@build",
             "echo 'Release package built successfully!'"
