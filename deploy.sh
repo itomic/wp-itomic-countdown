@@ -53,28 +53,16 @@ PLUGIN_DIR="$TEMP_DIR/$PLUGIN_NAME"
 
 # Copy plugin files to temporary directory with proper structure
 mkdir -p "$PLUGIN_DIR"
-rsync -av --exclude-from=<(cat <<EOF
-.git*
-.DS_Store*
-deploy/
-deploy.sh
-README.md
-DEVELOPMENT.md
-INSTALLATION.md
-*.log
-vendor/
-composer.json
-composer.lock
-phpunit.xml
-tests/
-bin/
-.gitignore
-coverage/
-node_modules/
-*.tmp
-*.temp
-EOF
-) . "$PLUGIN_DIR/"
+
+# Copy files using cp with exclusions
+cp -r . "$PLUGIN_DIR/"
+
+# Remove excluded files/directories from the temporary copy
+cd "$PLUGIN_DIR"
+rm -rf .git* .DS_Store* deploy/ deploy.sh README.md DEVELOPMENT.md INSTALLATION.md
+rm -rf *.log vendor/ composer.json composer.lock phpunit.xml tests/ bin/
+rm -rf .gitignore coverage/ node_modules/ *.tmp *.temp
+cd - > /dev/null
 
 # Create ZIP with proper plugin folder structure
 cd "$TEMP_DIR"
