@@ -46,8 +46,40 @@ git push origin feature/new-feature
 ```
 
 ### 3. Release Process
+
+#### Automated Version Management (Recommended)
 ```bash
-# Update version numbers
+# Patch release (1.0.5 → 1.0.6)
+composer run release:patch
+
+# Minor release (1.0.5 → 1.1.0) 
+composer run release:minor
+
+# Major release (1.0.5 → 2.0.0)
+composer run release:major
+
+# Push to remote
+git push origin main
+```
+
+#### Manual Version Management
+```bash
+# Update version manually using our script
+bin/bump-version.sh 1.0.6
+
+# Or with auto-commit
+bin/bump-version.sh 1.0.6 --commit
+
+# Build package
+composer build
+
+# Push to remote
+git push origin main
+```
+
+#### Legacy Manual Process (Not Recommended)
+```bash
+# Manually update version in all files:
 # - itomic-countdown.php (Version: x.x.x)
 # - composer.json (version field)
 # - readme.txt (Stable tag: x.x.x)
@@ -55,15 +87,8 @@ git push origin feature/new-feature
 # Build package
 composer build
 
-# Test the package
-composer test
-
-# Deploy to test servers
-composer deploy
-
-# Merge to main branch
-git checkout main
-git merge feature/new-feature
+# Commit changes
+git commit -m "Bump version to x.x.x"
 git push origin main
 ```
 
@@ -71,16 +96,59 @@ git push origin main
 
 ```
 itomic-countdown/
-├── itomic-countdown.php      # Main plugin file
+├── itomic-countdown.php      # Main plugin file (VERSION SOURCE OF TRUTH)
 ├── assets/                   # CSS, JS, images
 ├── tests/                    # PHPUnit tests
-├── bin/                      # Build scripts
+├── bin/                      # Build and version management scripts
+│   ├── bump-version.sh      # Automated version management
+│   └── install-wp-tests.sh  # WordPress test setup
 ├── deploy/                   # Build artifacts (gitignored)
-├── composer.json             # Dependencies
+├── composer.json             # Dependencies + version commands
 ├── phpunit.xml              # Test configuration
 ├── bitbucket-pipelines.yml  # CI/CD pipeline
 └── README.md                # This file
 ```
+
+## Version Management
+
+This plugin follows **WordPress.org best practices** for version management with a **single source of truth** approach.
+
+### Single Source of Truth
+- **`itomic-countdown.php`** contains the authoritative version number in the plugin header
+- All other files get their version from this source
+- Eliminates version mismatches and manual errors
+
+### Available Commands
+```bash
+# Interactive version bump
+bin/bump-version.sh 1.0.6
+
+# Automated patch release (1.0.5 → 1.0.6)
+composer run release:patch
+
+# Automated minor release (1.0.5 → 1.1.0)
+composer run release:minor
+
+# Automated major release (1.0.5 → 2.0.0)
+composer run release:major
+
+# Build package only
+composer build
+
+# Manual version with auto-commit
+bin/bump-version.sh 1.0.6 --commit
+```
+
+### What Gets Updated Automatically
+- ✅ Plugin header `Version:` field
+- ✅ `ITOMIC_COUNTDOWN_VERSION` constant
+- ✅ `readme.txt` stable tag
+- ✅ `composer.json` version field
+- ✅ `deploy/version.json`
+- ✅ `deploy/info.json`
+- ✅ Git commit with proper message
+- ✅ Optional git tag creation
+- ✅ Interactive changelog entry
 
 ## Testing
 

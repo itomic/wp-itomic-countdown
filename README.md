@@ -73,6 +73,16 @@ composer phpcs
 ```
 
 ### Available Commands
+
+#### Version Management (WordPress Best Practice)
+```bash
+composer run release:patch    # Patch release (1.0.5 → 1.0.6) 
+composer run release:minor    # Minor release (1.0.5 → 1.1.0)
+composer run release:major    # Major release (1.0.5 → 2.0.0)
+bin/bump-version.sh 1.0.6     # Manual version bump
+```
+
+#### Development & Testing
 ```bash
 composer test              # Run PHPUnit tests
 composer test:coverage     # Run tests with coverage report
