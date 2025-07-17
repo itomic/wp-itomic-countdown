@@ -34,7 +34,7 @@ pipelines:
         artifacts:
           - deploy/**
 
-    branches:
+  branches:
     main:
       - step:
           name: Deploy to Test Server
