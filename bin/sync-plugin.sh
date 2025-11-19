@@ -19,6 +19,7 @@ SOURCE_FILES=(
     "uninstall.php"
     "assets/"
     "languages/"
+    "includes/"
 )
 
 # Function to print colored output
