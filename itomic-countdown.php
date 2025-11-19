@@ -51,6 +51,15 @@ class Itomic_Countdown_Plugin {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_footer', array( $this, 'display_countdown' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_settings_link' ) );
+		
+		// Add "Check for updates" link in plugin row meta (appears below description)
+		add_filter( 'plugin_row_meta', array( $this, 'add_plugin_row_meta' ), 10, 2 );
+		
+		// Handle "Check for updates" action
+		add_action( 'admin_init', array( $this, 'handle_check_updates' ) );
+		
+		// Show success message on Updates page after checking
+		add_action( 'admin_notices', array( $this, 'show_update_check_notice' ) );
 	}
 
 	/**
@@ -326,6 +335,96 @@ class Itomic_Countdown_Plugin {
 		$settings_link = '<a href="' . esc_url( admin_url( 'options-general.php?page=itomic-countdown' ) ) . '">' . __( 'Settings', 'itomic-countdown' ) . '</a>';
 		array_unshift( $links, $settings_link );
 		return $links;
+	}
+	
+	/**
+	 * Add "Check for updates" link in plugin row meta
+	 * This appears below the plugin description on the Plugins page
+	 *
+	 * @param array  $links Existing meta links
+	 * @param string $file  Plugin file
+	 * @return array Modified links
+	 */
+	public function add_plugin_row_meta( $links, $file ) {
+		// Only add to our plugin
+		if ( $file !== plugin_basename( __FILE__ ) ) {
+			return $links;
+		}
+		
+		// Add "Check for updates" link
+		$check_url = wp_nonce_url(
+			admin_url( 'plugins.php?itomic-countdown-check-updates=1' ),
+			'itomic-countdown-check-updates'
+		);
+		/* translators: Link text for checking plugin updates */
+		$check_link = '<a href="' . esc_url( $check_url ) . '">' . __( 'Check for updates', 'itomic-countdown' ) . '</a>';
+		
+		// Add after existing links
+		$links[] = $check_link;
+		
+		return $links;
+	}
+	
+	/**
+	 * Handle "Check for updates" action
+	 * Clears update cache and forces WordPress to check for updates
+	 */
+	public function handle_check_updates() {
+		// Check if this is our update check request
+		if ( ! isset( $_GET['itomic-countdown-check-updates'] ) || ! isset( $_GET['_wpnonce'] ) ) {
+			return;
+		}
+		
+		// Verify nonce for security
+		if ( ! wp_verify_nonce( $_GET['_wpnonce'], 'itomic-countdown-check-updates' ) ) {
+			wp_die( __( 'Security check failed', 'itomic-countdown' ) );
+		}
+		
+		// Check user permissions
+		if ( ! current_user_can( 'update_plugins' ) ) {
+			wp_die( __( 'You do not have permission to update plugins', 'itomic-countdown' ) );
+		}
+		
+		// Clear update cache for our plugin (both stable and pre-release)
+		$cache_key_stable = 'itomic_countdown_update_' . md5( 'itomic/wp-itomic-countdown' );
+		$cache_key_prerelease = 'itomic_countdown_update_' . md5( 'itomic/wp-itomic-countdown_prerelease' );
+		delete_transient( $cache_key_stable );
+		delete_transient( $cache_key_prerelease );
+		
+		// Clear WordPress update transients
+		delete_site_transient( 'update_plugins' );
+		
+		// Force WordPress to check for updates
+		wp_update_plugins();
+		
+		// Redirect to Updates page with success message
+		$redirect_url = add_query_arg(
+			'itomic-update-checked',
+			'1',
+			admin_url( 'update-core.php' )
+		);
+		
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+	
+	/**
+	 * Show success notice on Updates page after checking for updates
+	 */
+	public function show_update_check_notice() {
+		// Only show on Updates page
+		$screen = get_current_screen();
+		if ( ! $screen || $screen->id !== 'update-core' ) {
+			return;
+		}
+		
+		// Check if update check was just performed
+		if ( isset( $_GET['itomic-update-checked'] ) && $_GET['itomic-update-checked'] == '1' ) {
+			echo '<div class="notice notice-success is-dismissible"><p>';
+			/* translators: Success message after checking for updates */
+			_e( 'Update check completed for Itomic Countdown. If an update is available, it will appear in the list below.', 'itomic-countdown' );
+			echo '</p></div>';
+		}
 	}
 
 	/**
