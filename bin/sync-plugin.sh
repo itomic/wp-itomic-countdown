@@ -19,7 +19,6 @@ SOURCE_FILES=(
     "uninstall.php"
     "assets/"
     "languages/"
-    "includes/"
 )
 
 # Function to print colored output
@@ -61,4 +60,4 @@ print_status "Symlink location: /home/spaceman/vanilla/public_html/wp-content/pl
 # List contents for verification
 echo ""
 echo "Plugin directory contents:"
-ls -la "$PLUGIN_DIR/" 
+ls -la "$PLUGIN_DIR/"
