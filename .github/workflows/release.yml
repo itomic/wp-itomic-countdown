@@ -1,0 +1,173 @@
+name: Automated Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'itomic-countdown.php'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for changelog
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+      
+      - name: Extract version from plugin file
+        id: get_version
+        run: |
+          VERSION=$(grep -oP 'Version: \K[0-9]+\.[0-9]+\.[0-9]+' itomic-countdown.php | head -1)
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from plugin file"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+      
+      - name: Verify version in readme.txt
+        run: |
+          README_VERSION=$(grep -oP 'Stable tag: \K[0-9]+\.[0-9]+\.[0-9]+' readme.txt | head -1)
+          PLUGIN_VERSION="${{ steps.get_version.outputs.version }}"
+          if [ "$README_VERSION" != "$PLUGIN_VERSION" ]; then
+            echo "Warning: Version mismatch!"
+            echo "Plugin file: $PLUGIN_VERSION"
+            echo "readme.txt: $README_VERSION"
+            echo "Continuing with plugin file version..."
+          else
+            echo "✓ Version matches in both files: $PLUGIN_VERSION"
+          fi
+      
+      - name: Check if release already exists
+        id: check_release
+        run: |
+          TAG="${{ steps.get_version.outputs.tag }}"
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG")
+          
+          if [ "$RESPONSE" = "200" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release $TAG already exists, skipping..."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Release $TAG does not exist, will create..."
+          fi
+        continue-on-error: true
+      
+      - name: Generate changelog
+        id: changelog
+        if: steps.check_release.outputs.exists != 'true'
+        run: |
+          TAG="${{ steps.get_version.outputs.tag }}"
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found, using all commits"
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            echo "Comparing $PREVIOUS_TAG..HEAD"
+            CHANGELOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="- No changes detected"
+          fi
+          
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      - name: Make packaging script executable
+        run: chmod +x package-plugin.sh
+      
+      - name: Package plugin
+        id: package
+        run: |
+          ./package-plugin.sh
+          
+          if [ ! -f "itomic-countdown.zip" ]; then
+            echo "Error: Plugin packaging failed - ZIP file not found"
+            exit 1
+          fi
+          
+          ZIP_SIZE=$(du -h itomic-countdown.zip | cut -f1)
+          echo "zip_file=itomic-countdown.zip" >> $GITHUB_OUTPUT
+          echo "zip_size=$ZIP_SIZE" >> $GITHUB_OUTPUT
+          echo "✓ Plugin packaged successfully ($ZIP_SIZE)"
+      
+      - name: Verify ZIP structure
+        run: |
+          unzip -l itomic-countdown.zip | head -20
+          if ! unzip -l itomic-countdown.zip | grep -q "itomic-countdown.php"; then
+            echo "Error: ZIP file structure incorrect - itomic-countdown.php not found"
+            exit 1
+          fi
+          echo "✓ ZIP structure verified"
+      
+      - name: Create Release
+        if: steps.check_release.outputs.exists != 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          name: Version ${{ steps.get_version.outputs.version }}
+          body: |
+            ## Version ${{ steps.get_version.outputs.version }}
+            
+            ### Installation
+            
+            1. Download the `itomic-countdown.zip` file below
+            2. Go to WordPress Admin → Plugins → Add New → Upload Plugin
+            3. Upload the ZIP file and activate
+            
+            ### Auto-Update
+            
+            If you have the plugin installed, WordPress will automatically detect this update within 12 hours, or you can check manually from the Plugins page.
+            
+            ### What's Changed
+            
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ### Technical Details
+            
+            - **Plugin Version:** ${{ steps.get_version.outputs.version }}
+            - **Package Size:** ${{ steps.package.outputs.zip_size }}
+            - **Repository:** ${{ github.repository }}
+            - **Commit:** ${{ github.sha }}
+            
+            ---
+            *This release was automatically generated by GitHub Actions*
+          files: |
+            itomic-countdown.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+      
+      - name: Release already exists
+        if: steps.check_release.outputs.exists == 'true'
+        run: |
+          echo "::warning::Release ${{ steps.get_version.outputs.tag }} already exists. Skipping release creation."
+          echo "If you want to update the release, delete it first or increment the version number in itomic-countdown.php"
+      
+      - name: Summary
+        if: steps.check_release.outputs.exists != 'true'
+        run: |
+          echo "## Release Created Successfully ✓" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** ${{ steps.get_version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Package:** itomic-countdown.zip (${{ steps.package.outputs.zip_size }})" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release URL:** https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+

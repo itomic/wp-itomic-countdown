@@ -15,6 +15,7 @@
  * Requires at least: 5.0
  * Tested up to: 6.8
  * Requires PHP: 7.4
+ * Update URI: https://github.com/itomic/wp-itomic-countdown
  *
  * @package Itomic_Countdown
  */
@@ -28,7 +29,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'ITOMIC_COUNTDOWN_VERSION', '1.0.10' );
 define( 'ITOMIC_COUNTDOWN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ITOMIC_COUNTDOWN_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'ITOMIC_COUNTDOWN_UPDATE_URL', 'https://itomic.com.au/plugins/itomic-countdown/' );
+
+// Load the updater class (only for self-hosted installations, not WordPress.org)
+// WordPress.org plugins must use the built-in update system
+if ( file_exists( plugin_dir_path( __FILE__ ) . 'includes/class-plugin-updater.php' ) ) {
+	require_once plugin_dir_path( __FILE__ ) . 'includes/class-plugin-updater.php';
+}
 
 /**
  * Main Itomic Countdown Plugin Class
@@ -45,17 +51,6 @@ class Itomic_Countdown_Plugin {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_footer', array( $this, 'display_countdown' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'add_settings_link' ) );
-
-		// Only add custom update system for self-hosted installations (not WordPress.org).
-		if ( ! $this->is_wordpress_org_version() ) {
-			// Add update checking.
-			add_filter( 'pre_set_site_transient_update_plugins', array( $this, 'check_for_updates' ) );
-			add_filter( 'plugins_api', array( $this, 'plugin_info' ), 10, 3 );
-
-			// Add auto-update functionality.
-			add_filter( 'auto_update_plugin', array( $this, 'auto_update_plugin' ), 10, 2 );
-			add_filter( 'plugin_auto_update_setting_html', array( $this, 'auto_update_setting_html' ), 10, 2 );
-		}
 	}
 
 	/**
@@ -65,43 +60,6 @@ class Itomic_Countdown_Plugin {
 		load_plugin_textdomain( 'itomic-countdown', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 	}
 
-	/**
-	 * Check if this is a WordPress.org hosted plugin
-	 *
-	 * @return bool True if WordPress.org version, false if self-hosted.
-	 */
-	private function is_wordpress_org_version() {
-		// Simple, conservative approach: Only disable custom updates when we're absolutely certain
-		// this is a WordPress.org installation. Default to allowing custom updates.
-		
-		// Check for WordPress.org specific environment indicators
-		// These constants are only set in WordPress.org hosted environments
-		if ( defined( 'WPORGPATH' ) || defined( 'WPORG_SANDBOXED' ) ) {
-			return true;
-		}
-		
-		// Check if the update URL constant is missing (would indicate WordPress.org package)
-		if ( ! defined( 'ITOMIC_COUNTDOWN_UPDATE_URL' ) ) {
-			return true;
-		}
-		
-		// Check for WordPress.org plugin directory structure patterns
-		// WordPress.org plugins are typically installed without custom update URLs
-		$plugin_file = plugin_basename( __FILE__ );
-		if ( strpos( $plugin_file, 'itomic-countdown/itomic-countdown.php' ) !== false ) {
-			// If installed via WordPress.org, there would be no custom update server reference
-			// We can check if our update server URL looks like the default WordPress.org pattern
-			if ( strpos( ITOMIC_COUNTDOWN_UPDATE_URL, 'downloads.wordpress.org' ) !== false ||
-				 strpos( ITOMIC_COUNTDOWN_UPDATE_URL, 'api.wordpress.org' ) !== false ) {
-				return true;
-			}
-		}
-		
-		// Default: Allow custom updates (assume self-hosted)
-		// This is safer - if we're wrong, updates still work via WordPress.org
-		// If we're right, custom updates work as expected
-		return false;
-	}
 
 	/**
 	 * Add admin menu
@@ -418,119 +376,6 @@ class Itomic_Countdown_Plugin {
 		echo '</div>';
 	}
 
-	/**
-	 * Check for plugin updates
-	 *
-	 * @param object $transient The update transient.
-	 * @return object Modified transient with update information.
-	 */
-	public function check_for_updates( $transient ) {
-		if ( empty( $transient->checked ) ) {
-			return $transient;
-		}
-
-		// Get plugin info.
-		$plugin_slug = basename( dirname( __FILE__ ) ) . '/' . basename( __FILE__ );
-
-		// Check for updates from our server.
-		$response = wp_remote_get( ITOMIC_COUNTDOWN_UPDATE_URL . 'version.json' );
-
-		if ( is_wp_error( $response ) ) {
-			return $transient;
-		}
-
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
-
-		if ( ! $data || ! isset( $data['version'] ) ) {
-			return $transient;
-		}
-
-		// Compare versions.
-		if ( version_compare( ITOMIC_COUNTDOWN_VERSION, $data['version'], '<' ) ) {
-			$transient->response[ $plugin_slug ] = (object) array(
-				'slug'        => basename( dirname( __FILE__ ) ),
-				'plugin'      => $plugin_slug,
-				'new_version' => $data['version'],
-				'url'         => $data['details_url'],
-				'package'     => ITOMIC_COUNTDOWN_UPDATE_URL . 'itomic-countdown-' . $data['version'] . '.zip',
-			);
-		}
-
-		return $transient;
-	}
-
-	/**
-	 * Plugin info for update screen
-	 *
-	 * @param false|object|array $result The result from the API.
-	 * @param string             $action The API action being performed.
-	 * @param object             $args   Plugin API arguments.
-	 * @return false|object|array Modified result with plugin information.
-	 */
-	public function plugin_info( $result, $action, $args ) {
-		if ( 'plugin_information' !== $action ) {
-			return $result;
-		}
-
-		if ( basename( dirname( __FILE__ ) ) !== $args->slug ) {
-			return $result;
-		}
-
-		$response = wp_remote_get( ITOMIC_COUNTDOWN_UPDATE_URL . 'info.json' );
-
-		if ( is_wp_error( $response ) ) {
-			return $result;
-		}
-
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
-
-		if ( $data ) {
-			return (object) $data;
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Auto-update setting HTML
-	 *
-	 * @param string $html        The HTML for the auto-update setting.
-	 * @param string $plugin_file The plugin file path.
-	 * @return string Modified HTML.
-	 */
-	public function auto_update_setting_html( $html, $plugin_file ) {
-		if ( plugin_basename( __FILE__ ) !== $plugin_file ) {
-			return $html;
-		}
-
-		$checked = get_option( 'auto_update_plugin_' . $plugin_file, 'off' );
-		/* translators: Description for automatic plugin updates */
-		$html  = '<p>' . __( 'Automatically update this plugin to the latest version.', 'itomic-countdown' ) . '</p>';
-		$html .= '<label for="auto_update_plugin_' . esc_attr( $plugin_file ) . '">';
-		$html .= '<input type="checkbox" id="auto_update_plugin_' . esc_attr( $plugin_file ) . '" name="auto_update_plugin_' . esc_attr( $plugin_file ) . '" value="on" ' . checked( $checked, 'on', false ) . ' />';
-		/* translators: Checkbox label to enable automatic plugin updates */
-		$html .= esc_html__( 'Enable automatic updates', 'itomic-countdown' ) . '</label>';
-		return $html;
-	}
-
-	/**
-	 * Auto-update plugin filter
-	 *
-	 * @param bool   $update Whether to update the plugin.
-	 * @param object $item   Plugin update data.
-	 * @return bool Whether to auto-update the plugin.
-	 */
-	public function auto_update_plugin( $update, $item ) {
-		if ( basename( dirname( __FILE__ ) ) === $item->slug ) {
-			$auto_update = get_option( 'auto_update_plugin_' . $item->slug, 'off' );
-			if ( 'on' === $auto_update ) {
-				return true;
-			}
-		}
-		return $update;
-	}
 
 	/**
 	 * Plugin activation hook
@@ -561,3 +406,35 @@ register_deactivation_hook( __FILE__, array( 'Itomic_Countdown_Plugin', 'deactiv
 
 // Initialize the plugin.
 new Itomic_Countdown_Plugin();
+
+// Initialize the updater (only for self-hosted installations, NOT for WordPress.org)
+// WordPress.org plugins use the built-in update system and should not include this file
+// The Update URI header tells WordPress this is a self-hosted plugin
+if ( is_admin() && class_exists( 'Itomic_Countdown_Updater' ) ) {
+	// Only initialize updater if Update URI is set (indicates self-hosted)
+	// This prevents warnings in Plugin Check tool for WordPress.org submissions
+	$plugin_data = get_file_data( __FILE__, array( 'UpdateURI' => 'Update URI' ) );
+	
+	// If Update URI is set and points to GitHub (not wordpress.org), use custom updater
+	if ( ! empty( $plugin_data['UpdateURI'] ) && strpos( $plugin_data['UpdateURI'], 'wordpress.org' ) === false ) {
+		$updater = new Itomic_Countdown_Updater(
+			__FILE__,
+			'itomic/wp-itomic-countdown'  // GitHub repository: username/repo
+		);
+		
+		// Opt into WordPress auto-updates (WordPress 5.5+)
+		// This allows users to enable auto-updates from the Plugins page
+		add_filter(
+			'auto_update_plugin',
+			function( $update, $item ) {
+				// Only auto-update this specific plugin
+				if ( isset( $item->plugin ) && $item->plugin === plugin_basename( __FILE__ ) ) {
+					return true; // Allow auto-updates (user can still disable per-plugin)
+				}
+				return $update;
+			},
+			10,
+			2
+		);
+	}
+}

@@ -1,41 +1,39 @@
-# WordPress plugin development .gitignore
-
-# Build artifacts
-deploy/
-*.zip
-build/
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
+# Wordpress core (but keep wp-config-sample.php)
+/wp-admin/
+/wp-includes/
+/wp-content/uploads/
+/wp-content/blogs.dir/
+/wp-content/upgrade/
+/wp-content/backup-db/
+/wp-content/advanced-cache.php
+/wp-content/wp-cache-config.php
+/wp-content/cache/
+/wp-content/cache/*
+sitemap.xml
 *.log
-debug.log
 
-# Temporary files
+# Build and deployment files
+deploy/
+coverage/
+.DS_Store
+*~
 *.tmp
-*.temp
+*.log
 
-# WordPress specific
-wp-config.php
-wp-content/uploads/
-wp-content/cache/
-
-# Testing
-node_modules/
+# Development files  
 vendor/
 composer.lock
-package-lock.json
+node_modules/
+.vscode/
+.idea/
 
-# Environment files
-.env
-.env.local
-.env.production 
+# Test files
+tests/coverage/
+
+# Generated plugin directory (symlinked to WordPress)
+plugin/
+
+# Local development files
+debug-*.php
+debug-*.backup
+local-config.php 
