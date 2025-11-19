@@ -1,0 +1,19 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Shell scripts must use LF line endings
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Windows scripts can use CRLF
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# PHP files
+*.php text
+
+# Documentation
+*.md text
+*.txt text
+
