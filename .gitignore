@@ -19,6 +19,7 @@ coverage/
 *~
 *.tmp
 *.log
+*.zip
 
 # Development files  
 vendor/
