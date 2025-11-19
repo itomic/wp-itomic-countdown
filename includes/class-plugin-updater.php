@@ -22,23 +22,28 @@ class Itomic_Countdown_Updater {
 	private $version;
 	private $cache_key;
 	private $cache_allowed;
+	private $check_prereleases;
 	
 	/**
 	 * Constructor
 	 * 
 	 * @param string $plugin_file Path to the main plugin file
 	 * @param string $github_repo GitHub repository in format 'username/repo'
+	 * @param bool   $check_prereleases Whether to check for pre-releases (for testing/develop branch)
 	 */
-	public function __construct( $plugin_file, $github_repo ) {
+	public function __construct( $plugin_file, $github_repo, $check_prereleases = false ) {
 		$this->plugin_file = $plugin_file;
 		$this->github_repo = $github_repo;
 		$this->plugin_slug = plugin_basename( $plugin_file );
+		$this->check_prereleases = $check_prereleases;
 		
 		// Get plugin version from main file
 		$plugin_data = get_file_data( WP_PLUGIN_DIR . '/' . $this->plugin_slug, array( 'Version' => 'Version' ) );
 		$this->version = $plugin_data['Version'];
 		
-		$this->cache_key = 'itomic_countdown_update_' . md5( $this->github_repo );
+		// Include prerelease flag in cache key to separate main and develop update checks
+		$cache_suffix = $check_prereleases ? '_prerelease' : '';
+		$this->cache_key = 'itomic_countdown_update_' . md5( $this->github_repo . $cache_suffix );
 		$this->cache_allowed = true;
 		
 		// Hook into WordPress update system
@@ -104,7 +109,14 @@ class Itomic_Countdown_Updater {
 		}
 		
 		// Fetch latest release from GitHub API
-		$api_url = "https://api.github.com/repos/{$this->github_repo}/releases/latest";
+		// If checking pre-releases, get all releases and filter; otherwise get latest stable
+		if ( $this->check_prereleases ) {
+			// Get all releases (including pre-releases) and find the latest one
+			$api_url = "https://api.github.com/repos/{$this->github_repo}/releases";
+		} else {
+			// Get only the latest stable release
+			$api_url = "https://api.github.com/repos/{$this->github_repo}/releases/latest";
+		}
 		
 		$response = wp_remote_get(
 			$api_url,
@@ -123,6 +135,15 @@ class Itomic_Countdown_Updater {
 		
 		$body = wp_remote_retrieve_body( $response );
 		$data = json_decode( $body );
+		
+		// Handle array response (when checking pre-releases) vs single object (latest stable)
+		if ( $this->check_prereleases ) {
+			// $data is an array of releases, get the first one (most recent)
+			if ( empty( $data ) || ! is_array( $data ) || ! isset( $data[0] ) ) {
+				return false;
+			}
+			$data = $data[0]; // Use the first (latest) release
+		}
 		
 		if ( empty( $data ) || ! isset( $data->tag_name ) ) {
 			return false;

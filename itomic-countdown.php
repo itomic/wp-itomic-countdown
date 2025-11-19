@@ -417,9 +417,14 @@ if ( is_admin() && class_exists( 'Itomic_Countdown_Updater' ) ) {
 	
 	// If Update URI is set and points to GitHub (not wordpress.org), use custom updater
 	if ( ! empty( $plugin_data['UpdateURI'] ) && strpos( $plugin_data['UpdateURI'], 'wordpress.org' ) === false ) {
+		// Check if we should use pre-releases (for testing/develop branch)
+		// Set ITOMIC_COUNTDOWN_CHECK_PRERELEASES constant to true in wp-config.php for testing
+		$check_prereleases = defined( 'ITOMIC_COUNTDOWN_CHECK_PRERELEASES' ) && ITOMIC_COUNTDOWN_CHECK_PRERELEASES;
+		
 		$updater = new Itomic_Countdown_Updater(
 			__FILE__,
-			'itomic/wp-itomic-countdown'  // GitHub repository: username/repo
+			'itomic/wp-itomic-countdown',  // GitHub repository: username/repo
+			$check_prereleases              // Check for pre-releases if constant is set
 		);
 		
 		// Opt into WordPress auto-updates (WordPress 5.5+)
