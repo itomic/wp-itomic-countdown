@@ -6,10 +6,25 @@ This plugin follows **WordPress.org best practices** with a professional Git-bas
 
 ## Development Workflow
 
+### Branching Strategy
+
+The plugin follows a **Git Flow** branching model:
+
+- **`main`**: Production-ready code. Only receives merges from `develop`. Releases are created from this branch.
+- **`develop`**: Integration branch for new features. All feature branches merge here first.
+- **`feature/*`**: Individual feature branches. Created from `develop`, merged back to `develop`.
+
+**Workflow:**
+1. Create feature branch from `develop`: `git checkout -b feature/new-feature develop`
+2. Develop and test feature
+3. Merge to `develop`: `git checkout develop && git merge feature/new-feature`
+4. When ready for release, merge `develop` to `main`: `git checkout main && git merge develop`
+5. Bump version and push to trigger GitHub Actions release
+
 ### Local Development Setup
 ```bash
 # Clone the repository
-git clone <bitbucket-repo-url>
+git clone https://github.com/itomic/wp-itomic-countdown.git
 cd itomic-countdown
 
 # Install dependencies
@@ -30,6 +45,10 @@ composer phpcbf
 
 ### Feature Development Process
 ```bash
+# Start from develop branch
+git checkout develop
+git pull origin develop
+
 # Create feature branch
 git checkout -b feature/new-feature
 
@@ -45,10 +64,28 @@ composer test
 # Commit changes following convention
 git commit -m "Add new feature"
 
-# Push to Bitbucket
+# Push to GitHub
 git push origin feature/new-feature
 
-# Create Pull Request in Bitbucket
+# Create Pull Request on GitHub (merge to develop)
+```
+
+### Release Process
+```bash
+# When ready to release, merge develop to main
+git checkout main
+git pull origin main
+git merge develop
+
+# Bump version
+./bump-version.sh patch  # or minor/major
+
+# Commit and push (triggers GitHub Actions release)
+git add itomic-countdown.php readme.txt
+git commit -m "Bump version to 1.0.11"
+git push origin main
+
+# GitHub Actions automatically creates release
 ```
 
 ## Version Management Strategy

@@ -2,6 +2,14 @@
 
 ## Current Version: 1.0.10
 
+## Branching Strategy
+
+- **`main`**: Production-ready code. Releases are created from this branch.
+- **`develop`**: Development branch. All features are merged here first.
+- **`feature/*`**: Individual feature branches.
+
+**Important:** Only merge to `main` when ready for release. GitHub Actions only creates releases from `main` branch.
+
 ## Creating a New Release
 
 ### Step 1: Bump Version
@@ -20,7 +28,16 @@
 ./bump-version.sh major
 ```
 
-### Step 2: Commit and Push
+### Step 2: Merge develop to main (if needed)
+
+```bash
+# If you've been working on develop branch
+git checkout main
+git pull origin main
+git merge develop
+```
+
+### Step 3: Commit and Push
 
 ```bash
 git add itomic-countdown.php readme.txt
@@ -28,7 +45,7 @@ git commit -m "Bump version to 1.0.11"
 git push origin main
 ```
 
-### Step 3: GitHub Actions Does the Rest!
+### Step 4: GitHub Actions Does the Rest!
 
 ✅ Automatically packages plugin ZIP  
 ✅ Generates changelog from commits  
